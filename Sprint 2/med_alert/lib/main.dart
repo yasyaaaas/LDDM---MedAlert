@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'SingupLogin/splash_screen.dart';
-import 'TelasPrincipais/home_screen.dart';
-import 'SingupLogin/login_screen.dart';
-import 'SingupLogin/signup_screen.dart';
-import 'TelasPrincipais/account_screen.dart';
-import 'TelasPrincipais/settings_screen.dart';
+import 'features/SingupLogin/splash_screen.dart';
+import 'features/TelasPrincipais/home_screen.dart';
+import 'features/SingupLogin/login_screen.dart';
+import 'features/SingupLogin/signup_screen.dart';
+import 'features/TelasPrincipais/account_screen.dart';
+import 'features/TelasPrincipais/settings_screen.dart';
+//import 'shared/features/TelasPrincipais/camera_screen.dart';
 
 void main() {
   runApp(MyApp());
