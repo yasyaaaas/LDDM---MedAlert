@@ -2,7 +2,7 @@ import 'dart:io'; // Import necessário para usar File
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-const Color backgroundColor = Color.fromARGB(255, 199, 221, 236);
+const Color backgroundColor = Colors.white;
 
 class AccountScreen extends StatefulWidget {
   @override
@@ -71,7 +71,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     TextFormField(
                       controller: _nameController,
                       decoration: InputDecoration(labelText: 'Nome'),
-                      style: TextStyle(fontSize: 20), 
+                      style: TextStyle(fontSize: 26), 
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Campo obrigatório';
@@ -82,7 +82,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     TextFormField(
                       controller: _emailController,
                       decoration: InputDecoration(labelText: 'Altere seu e-mail'),
-                      style: TextStyle(fontSize: 20), 
+                      style: TextStyle(fontSize: 26), 
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Campo obrigatório';
@@ -96,7 +96,7 @@ class _AccountScreenState extends State<AccountScreen> {
                       controller: _passwordController,
                       decoration: InputDecoration(labelText: 'Altere sua senha'),
                       obscureText: true,
-                      style: TextStyle(fontSize: 20), 
+                      style: TextStyle(fontSize: 26), 
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Campo obrigatório';
@@ -110,7 +110,7 @@ class _AccountScreenState extends State<AccountScreen> {
                       controller: _confirmPasswordController,
                       decoration: InputDecoration(labelText: 'Confirme sua senha'),
                       obscureText: true,
-                      style: TextStyle(fontSize: 20), 
+                      style: TextStyle(fontSize: 26), 
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Campo obrigatório';
@@ -130,57 +130,14 @@ class _AccountScreenState extends State<AccountScreen> {
                           // Adicione lógica para alterar a senha
                         }
                       },
-                      child: Text('Salvar Alterações', style: TextStyle(fontSize: 20)),
+                      child: Text('Salvar Alterações', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
               ),
-
-              SizedBox(height: 30), 
-              
-              // Seção de medicamentos cadastrados
-              Text('Medicamentos Cadastrados', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)),
-              SizedBox(height: 10),
-              Column(
-                children: [
-                  _medicationItem('Ibuprofeno', 'Analgésico e anti-inflamatório.', Icons.medication),
-                  _medicationItem('Paracetamol', 'Analgésico e antipirético.', Icons.medication),
-                  _medicationItem('Amoxicilina', 'Antibiótico.', Icons.medication),
-                  _medicationItem('Losartana', 'Antihipertensivo.', Icons.medication),
-                  _medicationItem('Metformina', 'Antidiabético.', Icons.medication),
-                  _medicationItem('Aspirina', 'Analgésico, antipirético e anti-inflamatório.', Icons.medication),
-                  _medicationItem('Simvastatina', 'Hipolipemiante.', Icons.medication),
-                  _medicationItem('Omeprazol', 'Inibidor da bomba de prótons.', Icons.medication),
-                  _medicationItem('Loratadina', 'Antihistamínico.', Icons.medication),
-                  _medicationItem('Fluoxetina', 'Antidepressivo.', Icons.medication),
-                  _medicationItem('Sertralina', 'Antidepressivo.', Icons.medication),
-                  _medicationItem('Dipirona', 'Analgésico e antipirético.', Icons.medication),
-                ],
-              ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _medicationItem(String name, String description, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        children: [
-          Icon(icon, size: 24, color: Colors.red,),
-          SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)), 
-                Text(description, style: TextStyle(fontSize: 18, color: Colors.black)),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

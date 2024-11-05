@@ -6,7 +6,7 @@ class NewMedicationScreen extends StatefulWidget {
   _NewMedicationScreenState createState() => _NewMedicationScreenState();
 }
 
-const Color backgroundColor = Color.fromARGB(255, 199, 221, 236);
+const Color backgroundColor = Colors.white;
 
 class _NewMedicationScreenState extends State<NewMedicationScreen> {
   final _formKey = GlobalKey<FormState>();

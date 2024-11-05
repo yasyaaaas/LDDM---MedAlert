@@ -3,7 +3,7 @@ import 'package:image_picker/image_picker.dart'; // Import necessário para usar
 import 'account_screen.dart';
 import 'settings_screen.dart';
 
-const Color backgroundColor = Color.fromARGB(255, 199, 221, 236);
+const Color backgroundColor = Colors.white;
 
 class HomeScreen extends StatefulWidget {
   @override

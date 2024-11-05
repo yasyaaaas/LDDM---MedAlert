@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../TelasConfig/new_medication_screen.dart';
-import '../TelasConfig/edit_time_screen.dart';
+import '../TelasConfig/save_med_screen.dart';
 import '../TelasConfig/about_us_screen.dart';
 import '../TelasConfig/security_screen.dart';
 
-const Color backgroundColor = Color.fromARGB(255, 199, 221, 236);
+const Color backgroundColor = Colors.white;
 
 class SettingsScreen extends StatefulWidget {
   @override
@@ -31,8 +31,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             _buildOption(
-              'Editar Horário',
-              Icons.access_time,
+              'Medicamentos Salvos',
+              Icons.medical_information,
               () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => EditTimeScreen()),
@@ -67,7 +67,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         margin: EdgeInsets.symmetric(vertical: 10),
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Color.fromARGB(255, 199, 221, 236),
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
@@ -83,7 +83,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SizedBox(width: 20),
             Text(
               title,
-              style: TextStyle(fontSize: 22, color: Colors.black),
+             style: TextStyle(fontSize: 22, color: Colors.black, fontWeight: FontWeight.bold),
             ),
           ],
         ),
