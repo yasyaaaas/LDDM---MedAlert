@@ -47,7 +47,7 @@ class _CameraScreenState extends State<CameraScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           if (_controller != null && _controller!.value.isInitialized) {
-            final XFile? photo = await _controller!.takePicture();
+            final XFile photo = await _controller!.takePicture();
             if (photo != null) {
               print('Imagem capturada: ${photo.path}');
             }

@@ -27,12 +27,10 @@ class ConnectionSqliteService {
     String path = join(databasePath, DATABASE_NAME);
     DatabaseFactory databaseFactory = databaseFactoryFfi;
 
-    if (_db == null) {
-      _db = await databaseFactory.openDatabase(path, options: OpenDatabaseOptions(
+    _db ??= await databaseFactory.openDatabase(path, options: OpenDatabaseOptions(
         onCreate: _onCreate,
         version: DATABASE_VERSION, 
         ));
-    }
     return _db!;
   }
 

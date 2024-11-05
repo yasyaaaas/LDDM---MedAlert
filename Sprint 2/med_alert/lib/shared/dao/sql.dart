@@ -1,7 +1,7 @@
 import 'package:med_alert/shared/models/remedio_model.dart';
 
 class ConnectionSQL {
-  static final CREATE_DATABASE = '''
+  static const CREATE_DATABASE = '''
   CREATE TABLE `remedios` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `nome`  INTEGER,
