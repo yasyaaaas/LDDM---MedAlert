@@ -15,7 +15,8 @@ class ConnectionSqliteService {
     return _instance!; //Retorna se ja tiver sido criada
   }
 
-  static const DATABASE_NAME = 'contatos';
+
+  static const DATABASE_NAME = 'MedAlertDB';
   static const DATABASE_VERSION = 1;
   Database? _db;
 
