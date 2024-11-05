@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:med_alert/features/ListarRemedios/listarRemedios_screen.dart';
 import 'features/SingupLogin/splash_screen.dart';
 import 'features/TelasPrincipais/home_screen.dart';
 import 'features/SingupLogin/login_screen.dart';
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Color(0xFF04184B), // Cor de fundo azul escuro
         textTheme: TextTheme(bodyMedium: TextStyle(color: Colors.white)), // Textos em branco
       ),
+      home: ListarRemediosScreen(),
       initialRoute: '/splash',
       routes: {
         '/splash': (context) => SplashScreen(),
