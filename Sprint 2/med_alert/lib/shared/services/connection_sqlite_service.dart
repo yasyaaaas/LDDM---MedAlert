@@ -1,10 +1,8 @@
 // ignore_for_file: depend_on_referenced_packages, constant_identifier_names, unused_element
 
 import 'dart:async';
-
 import 'package:med_alert/shared/dao/sql.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 
 class ConnectionSqliteService {
@@ -20,7 +18,12 @@ class ConnectionSqliteService {
 
   Future<Database> get db async {
     if (_db != null) return _db!;
-    _db = await _initDatabase();
+    try {
+      _db = await _initDatabase();
+    } catch (e) {
+      print("Erro ao abrir o banco de dados: $e");
+      throw Exception("Erro ao abrir o banco de dados.");
+    }
     return _db!;
   }
 
@@ -32,16 +35,23 @@ class ConnectionSqliteService {
       path,
       version: DATABASE_VERSION,
       onCreate: _onCreate,
+      onOpen: (db) {
+        print("Banco de dados aberto com sucesso.");
+      },
+      onConfigure: (db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
     );
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    await db.execute(ConnectionSQL.CREATE_DATABASE);
+    try {
+      await db.execute(ConnectionSQL.CREATE_TABLE_REMEDIO);
+      await db.execute(ConnectionSQL.CREATE_TABLE_USUARIO);
+      // Adicione outros comandos CREATE TABLE, se necessário
+    } catch (e) {
+      print("Erro ao criar tabelas: $e");
+      throw Exception("Erro ao criar tabelas no banco de dados.");
+    }
   }
 }
-
-
-  FutureOr<void> _onCreate(Database db, int version) async {
-  await db.execute(ConnectionSQL.CREATE_DATABASE);
-}
-

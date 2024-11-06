@@ -4,7 +4,7 @@ import 'package:med_alert/shared/models/remedio_model.dart';
 import 'package:med_alert/shared/models/usuario_model.dart';
 
 class ConnectionSQL {
-  static const String CREATE_DATABASE = '''
+  static const String CREATE_TABLE_REMEDIO= '''
   CREATE TABLE Remedios (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nome TEXT NOT NULL,
@@ -13,20 +13,22 @@ class ConnectionSQL {
     frequencia INTEGER,
     horario TEXT
   );
+  ''';
 
-  CREATE TABLE usuarios (
+  static const String CREATE_TABLE_USUARIO = '''
+  CREATE TABLE Usuarios (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nome TEXT NOT NULL,
     sobrenome TEXT NOT NULL,
-    data DATE,
-    email TEXT NOT NULL,
+    data TEXT,
+    email TEXT NOT NULL UNIQUE,
     senha TEXT NOT NULL
   );
 ''';
 
 
   static String selecionarTodosOsRemedios() {
-    return 'SELECT * FROM remedios;';
+    return 'SELECT * FROM Remedios;';
   }
 
   static String adicionarRemedio(Remedio remedio) {
@@ -37,43 +39,49 @@ class ConnectionSQL {
   }
 
   static String atualizarRemedio(Remedio remedio) {
-    return '''
-      UPDATE Remedios SET nome = "${remedio.nome}", tipo = "${remedio.tipo}", dosagem = "${remedio.dosagem}", 
-      frequencia = ${remedio.frequencia}, horario = ${remedio.horario} WHERE id = ${remedio.id}
-    ''';
-  }
+  return '''
+    UPDATE Remedios SET 
+      nome = "${remedio.nome}", 
+      tipo = "${remedio.tipo}", 
+      dosagem = "${remedio.dosagem}", 
+      frequencia = ${remedio.frequencia}, 
+      horario = "${remedio.horario}" 
+    WHERE id = ${remedio.id}
+  ''';
+}
+
 
   static String deletarRemedio(Remedio remedio){
     return 'DELETE from Remedios WHERE id = ${remedio.id};';
   }
 
   static String selecionarTodosOsUsuarios() {
-    return 'select * from usuarios;';
+    return 'select * from Usuarios;';
   }
 
   static String adicionarUsuario(Usuario usuario) {
   return '''
-    INSERT INTO usuarios (nome, sobrenome, data, email, senha)
-    VALUES ('${usuario.nome}', '${usuario.sobrenome}', '${usuario.data}', '${usuario.email}', '${usuario.senha}');
+    INSERT INTO Usuarios (nome, sobrenome, data, email, senha)
+    VALUES ("${usuario.nome}", "${usuario.sobrenome}", "${usuario.data}", "${usuario.email}", "${usuario.senha}");
   ''';
 }
 
 
   static String atualizarUsuario(Usuario usuario) {
   return '''
-    UPDATE usuarios
+    UPDATE Usuarios
     SET nome = '${usuario.nome}',
-        sobrenome = '${usuario.sobrenome}',
-        data = '${usuario.data}',
-        email = '${usuario.email}',
-        senha = '${usuario.senha}'
+      sobrenome = '${usuario.sobrenome}',
+      data = '${usuario.data}',
+      email = '${usuario.email}',
+      senha = '${usuario.senha}'
     WHERE id = ${usuario.id};
   ''';
 }
 
 
   static String deletarUsuario(Usuario usuario){
-    return 'delete from usuarios where id = ${usuario.id};';
+    return 'DELETE FROM Usuarios WHERE id = ${usuario.id};';
   }
 
 }

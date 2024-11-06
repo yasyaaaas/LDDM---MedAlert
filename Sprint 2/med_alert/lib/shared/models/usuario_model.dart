@@ -2,7 +2,7 @@ class Usuario {
   int? id;
   String nome;
   String sobrenome;
-  DateTime data;
+  DateTime? data;
   String email;
   String senha;
 
@@ -10,27 +10,28 @@ class Usuario {
     this.id,
     required this.nome,
     required this.sobrenome,
-    required this.data,
+    this.data,
     required this.email,
     required this.senha
   });
 
-  factory Usuario.fromSQLite(Map map){
+  factory Usuario.fromSQLite(Map<String, dynamic> map) {
     return Usuario(
-      id: map['id'], 
+      id: map['id'],
       nome: map['nome'],
       sobrenome: map['sobrenome'],
-      data: map['data'],
+      data: map['data'] != null ? DateTime.parse(map['data']) : null,
       email: map['email'],
       senha: map['senha']
-      );
+    );
   }
 
-  static List<Usuario> fromSQLiteList(List<Map> listMap){
-    List<Usuario> usuario = [];
-    for (Map item in listMap) {
-      usuario.add(Usuario.fromSQLite(item));
-    }
-    return usuario;
+  static List<Usuario> fromSQLiteList(List<Map<String, dynamic>> listMap) {
+  List<Usuario> usuarios = [];
+  for (Map<String, dynamic> item in listMap) {
+    usuarios.add(Usuario.fromSQLite(item));
   }
+  return usuarios;
+}
+
 }
