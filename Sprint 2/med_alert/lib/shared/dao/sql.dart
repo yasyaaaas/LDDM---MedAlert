@@ -16,15 +16,15 @@ class ConnectionSQL {
   ''';
 
   static const String CREATE_TABLE_USUARIO = '''
-  CREATE TABLE Usuarios (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nome TEXT NOT NULL,
-    sobrenome TEXT NOT NULL,
-    data TEXT,
-    email TEXT NOT NULL UNIQUE,
-    senha TEXT NOT NULL
-  );
-''';
+    CREATE TABLE Usuarios (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nome TEXT NOT NULL,
+      sobrenome TEXT NOT NULL,
+      data TEXT,
+      email TEXT NOT NULL UNIQUE,
+      senha TEXT NOT NULL
+    );
+  ''';
 
 
   static String selecionarTodosOsRemedios() {

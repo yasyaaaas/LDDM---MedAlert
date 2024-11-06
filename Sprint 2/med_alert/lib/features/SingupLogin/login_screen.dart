@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:med_alert/shared/dao/usuario_dao.dart';
+import 'package:med_alert/shared/models/usuario_model.dart';
 
 class LoginScreen extends StatelessWidget {
-  final _formKey = GlobalKey<FormState>(); 
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final UsuarioDao _usuarioDao = UsuarioDao();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form( 
+        child: Form(
           key: _formKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -24,6 +29,7 @@ class LoginScreen extends StatelessWidget {
               ),
               SizedBox(height: 20),
               TextFormField(
+                controller: _emailController,
                 decoration: InputDecoration(
                   labelText: 'Email',
                   labelStyle: TextStyle(color: Colors.white, fontSize: 18),
@@ -42,6 +48,7 @@ class LoginScreen extends StatelessWidget {
               ),
               SizedBox(height: 16),
               TextFormField(
+                controller: _passwordController,
                 decoration: InputDecoration(
                   labelText: 'Senha',
                   labelStyle: TextStyle(color: Colors.white, fontSize: 18),
@@ -60,15 +67,39 @@ class LoginScreen extends StatelessWidget {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
-                    // Se o formulário for válido, navega para a tela home
-                    Navigator.pushReplacementNamed(context, '/home');
+                    // Se o formulário for válido, verificar o login
+                    String email = _emailController.text;
+                    String senha = _passwordController.text;
+
+                    Usuario? usuario = await _usuarioDao.verificarLogin(email, senha);
+
+                    if (usuario != null) {
+                      // Login bem-sucedido, navega para a tela home
+                      Navigator.pushReplacementNamed(context, '/home');
+                    } else {
+                      // Exibe mensagem de erro se o login falhar
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Erro de Login'),
+                          content: Text('Email ou senha incorretos.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('OK'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(
-                      vertical: 16, horizontal: 32),
+                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 32),
                 ),
                 child: Text('Entrar', style: TextStyle(fontSize: 20)),
               ),
@@ -77,8 +108,10 @@ class LoginScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushNamed(context, '/signup');
                 },
-                child: Text('Não tem um cadastro? Faça agora!',
-                    style: TextStyle(fontSize: 18)),
+                child: Text(
+                  'Não tem um cadastro? Faça agora!',
+                  style: TextStyle(fontSize: 18),
+                ),
               ),
             ],
           ),
