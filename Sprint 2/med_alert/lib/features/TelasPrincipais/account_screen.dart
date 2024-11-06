@@ -12,6 +12,7 @@ class AccountScreen extends StatefulWidget {
   AccountScreen({required this.userId});
 
   @override
+  // ignore: library_private_types_in_public_api
   _AccountScreenState createState() => _AccountScreenState();
 }
 
@@ -23,7 +24,8 @@ class _AccountScreenState extends State<AccountScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   final UsuarioDao _usuarioDao = UsuarioDao(); // Instância do DAO
 
@@ -37,7 +39,7 @@ class _AccountScreenState extends State<AccountScreen> {
     try {
       // Busca o usuário pelo ID
       Usuario? usuario = await _usuarioDao.getUsuarioById(widget.userId);
-      
+
       if (usuario != null) {
         // Preenche os controladores com os dados do usuário
         setState(() {
@@ -87,12 +89,20 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                     SizedBox(height: 10),
                     Icon(Icons.camera_alt, size: 24),
-                    Text('Equipe Med.Alert', style: TextStyle(fontSize: 20, color: Colors.deepPurple, fontWeight: FontWeight.bold)),
+                    Text(
+                      _nameController.text.isNotEmpty
+                          ? 'Olá, ${_nameController.text}'
+                          : 'Carregando...',
+                      style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.deepPurple,
+                          fontWeight: FontWeight.bold),
+                    ),
                   ],
                 ),
               ),
               SizedBox(height: 20),
-              
+
               // Formulário de alterações
               Form(
                 key: _formKey,
@@ -101,7 +111,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     TextFormField(
                       controller: _nameController,
                       decoration: InputDecoration(labelText: 'Nome'),
-                      style: TextStyle(fontSize: 26), 
+                      style: TextStyle(fontSize: 26),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Campo obrigatório';
@@ -111,8 +121,9 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                     TextFormField(
                       controller: _emailController,
-                      decoration: InputDecoration(labelText: 'Altere seu e-mail'),
-                      style: TextStyle(fontSize: 26), 
+                      decoration:
+                          InputDecoration(labelText: 'Altere seu e-mail'),
+                      style: TextStyle(fontSize: 26),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Campo obrigatório';
@@ -124,9 +135,10 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                     TextFormField(
                       controller: _passwordController,
-                      decoration: InputDecoration(labelText: 'Altere sua senha'),
+                      decoration:
+                          InputDecoration(labelText: 'Altere sua senha'),
                       obscureText: true,
-                      style: TextStyle(fontSize: 26), 
+                      style: TextStyle(fontSize: 26),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Campo obrigatório';
@@ -138,9 +150,10 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                     TextFormField(
                       controller: _confirmPasswordController,
-                      decoration: InputDecoration(labelText: 'Confirme sua senha'),
+                      decoration:
+                          InputDecoration(labelText: 'Confirme sua senha'),
                       obscureText: true,
-                      style: TextStyle(fontSize: 26), 
+                      style: TextStyle(fontSize: 26),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Campo obrigatório';
@@ -160,7 +173,9 @@ class _AccountScreenState extends State<AccountScreen> {
                           // Adicione lógica para alterar a senha
                         }
                       },
-                      child: Text('Salvar Alterações', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                      child: Text('Salvar Alterações',
+                          style: TextStyle(
+                              fontSize: 22, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
