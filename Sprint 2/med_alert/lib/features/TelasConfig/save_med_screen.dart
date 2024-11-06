@@ -73,7 +73,14 @@ class _SaveMedScreenState extends State<SaveMedScreen> {
             Navigator.of(context).pop();
           },
         ),
-        title: Text('Medicamentos Salvos'),
+        title: Text(
+          'Medicamentos Salvos',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 23.0,
+            color: Colors.black,
+          ),
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.add),
@@ -89,25 +96,42 @@ class _SaveMedScreenState extends State<SaveMedScreen> {
               itemBuilder: (context, index) {
                 final med = _medications[index];
                 return ListTile(
-                  leading: Icon(Icons.medication, color: Colors.red),
-                  title: Text(med.nome),
+                  leading: IconTheme(
+                    data: IconThemeData(
+                      size: 30, // Aumenta o tamanho do ícone de medicamento
+                      color: Colors.red,
+                    ),
+                    child: Icon(Icons.medication),
+                  ),
+                  title: Text(
+                    med.nome,
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight:
+                            FontWeight.bold), // Aumenta o tamanho do título
+                  ),
                   subtitle: Text(
-                      "Dosagem: ${med.dosagem}, Frequência: ${med.frequencia} vezes ao dia, Horário: ${med.horario ?? 'N/A'}"),
+                    "Dosagem: ${med.dosagem}, Frequência: ${med.frequencia} vezes ao dia, Horário: ${med.horario ?? 'N/A'}",
+                    style: TextStyle(
+                        fontSize: 18), // Aumenta o tamanho do subtítulo
+                  ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () =>
-                            _editMedication(med), // Edita o medicamento
+                        icon: Icon(Icons.edit,
+                            color: Colors.blue,
+                            size: 26), // Ajusta o ícone de edição
+                        onPressed: () => _editMedication(med),
                       ),
                       IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
+                        icon: Icon(Icons.delete,
+                            color: Colors.red,
+                            size: 26), // Ajusta o ícone de exclusão
                         onPressed: () async {
                           bool confirm = await _showDeleteConfirmation();
                           if (confirm) {
-                            _deleteMedication(med
-                                .id!); // Deleta o medicamento após confirmação
+                            _deleteMedication(med.id!);
                           }
                         },
                       ),
@@ -206,7 +230,13 @@ class _SaveMedScreenFormState extends State<SaveMedScreenForm> {
           },
         ),
         title: Text(
-            widget.remedio == null ? 'Adicionar Remédio' : 'Editar Remédio'),
+          widget.remedio == null ? 'Adicionar Remédio' : 'Editar Remédio',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 23.0,
+            color: Colors.black,
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -216,7 +246,13 @@ class _SaveMedScreenFormState extends State<SaveMedScreenForm> {
             children: [
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: 'Nome do Remédio'),
+                decoration: InputDecoration(
+                  labelText: 'Nome do Remédio',
+                  labelStyle: TextStyle(
+                      fontSize: 21), // Aumenta o tamanho do texto do rótulo
+                ),
+                style: TextStyle(
+                    fontSize: 21), // Aumenta o tamanho do texto de entrada
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, insira o nome do remédio';
@@ -226,25 +262,44 @@ class _SaveMedScreenFormState extends State<SaveMedScreenForm> {
               ),
               TextFormField(
                 controller: _doseController,
-                decoration: InputDecoration(labelText: 'Dosagem (mg)'),
+                decoration: InputDecoration(
+                  labelText: 'Dosagem (mg)',
+                  labelStyle: TextStyle(fontSize: 21),
+                ),
+                style: TextStyle(fontSize: 21),
                 keyboardType: TextInputType.number,
               ),
               TextFormField(
                 controller: _frequencyController,
-                decoration:
-                    InputDecoration(labelText: 'Frequência (vezes ao dia)'),
+                decoration: InputDecoration(
+                  labelText: 'Frequência (vezes ao dia)',
+                  labelStyle: TextStyle(fontSize: 21),
+                ),
+                style: TextStyle(fontSize: 21),
                 keyboardType: TextInputType.number,
               ),
               TextFormField(
                 controller: _timeController,
-                decoration: InputDecoration(labelText: 'Horário (Ex: 08:00)'),
+                decoration: InputDecoration(
+                  labelText: 'Horário (Ex: 08:00)',
+                  labelStyle: TextStyle(fontSize: 21),
+                ),
+                style: TextStyle(fontSize: 21),
                 keyboardType: TextInputType.datetime,
               ),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _saveMedication,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                      vertical: 15,
+                      horizontal: 20), // Aumenta o tamanho do botão
+                ),
                 child: Text(
-                    widget.remedio == null ? 'Adicionar' : 'Salvar Alterações'),
+                  widget.remedio == null ? 'Adicionar' : 'Salvar Alterações',
+                  style: TextStyle(
+                      fontSize: 20), // Aumenta o tamanho do texto do botão
+                ),
               ),
             ],
           ),
