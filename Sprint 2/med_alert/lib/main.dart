@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginScreen(),
         '/signup': (context) => SignupScreen(),
         '/home': (context) => HomeScreen(),
-        '/account': (context) => AccountScreen(),
+        '/account': (context) => AccountScreen(userId: 1),
         '/settings': (context) => SettingsScreen(),
       },
     );

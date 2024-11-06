@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static List<Widget> _widgetOptions = <Widget>[
     NotificationScreen(), // Criar uma nova tela para as notificações
-    AccountScreen(),
+    AccountScreen(userId: 1),
     SettingsScreen(),
   ];
 

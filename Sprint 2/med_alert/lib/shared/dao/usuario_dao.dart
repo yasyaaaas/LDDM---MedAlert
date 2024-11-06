@@ -32,4 +32,21 @@ class UsuarioDao {
     }
     return null;
   }
+
+  Future<Usuario?> getUsuarioById(int id) async {
+  final db = await ConnectionSqliteService.instance.db;
+  final List<Map<String, dynamic>> maps = await db.query(
+    'usuarios',
+    where: 'id = ?',
+    whereArgs: [id],
+  );
+
+  if (maps.isNotEmpty) {
+    return Usuario.fromSQLite(maps.first); // Certifique-se de ter um método `fromSQLite` no modelo `Usuario`
+  } else {
+    return null;
+  }
+}
+
+
 }

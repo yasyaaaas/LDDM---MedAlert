@@ -1,12 +1,17 @@
-import 'dart:io'; // Import necessário para usar File
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:med_alert/shared/dao/usuario_dao.dart';
+import 'package:med_alert/shared/models/usuario_model.dart';
 
 const Color backgroundColor = Colors.white;
 
 class AccountScreen extends StatefulWidget {
+  final int userId; // ID do usuário logado, passado ao abrir a tela
+
+  AccountScreen({required this.userId});
+
   @override
-  // ignore: library_private_types_in_public_api
   _AccountScreenState createState() => _AccountScreenState();
 }
 
@@ -19,6 +24,31 @@ class _AccountScreenState extends State<AccountScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+
+  final UsuarioDao _usuarioDao = UsuarioDao(); // Instância do DAO
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData(); // Carrega os dados do usuário ao abrir a tela
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      // Busca o usuário pelo ID
+      Usuario? usuario = await _usuarioDao.getUsuarioById(widget.userId);
+      
+      if (usuario != null) {
+        // Preenche os controladores com os dados do usuário
+        setState(() {
+          _nameController.text = usuario.nome;
+          _emailController.text = usuario.email;
+        });
+      }
+    } catch (e) {
+      print("Erro ao carregar dados do usuário: $e");
+    }
+  }
 
   // Função para abrir a câmera
   Future<void> _openCamera() async {
@@ -57,7 +87,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                     SizedBox(height: 10),
                     Icon(Icons.camera_alt, size: 24),
-                    Text('Equipe Med.Alert', style: TextStyle(fontSize: 20, color: Colors.deepPurple,  fontWeight: FontWeight.bold )),
+                    Text('Equipe Med.Alert', style: TextStyle(fontSize: 20, color: Colors.deepPurple, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
