@@ -35,7 +35,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Icons.medical_information,
               () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => EditTimeScreen()),
+                MaterialPageRoute(
+                  builder: (context) => SaveMedScreen(), // Passa o objeto `Remedio` se for uma edição
+                ),
               ),
             ),
             _buildOption(

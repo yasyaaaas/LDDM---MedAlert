@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
         textTheme: TextTheme(bodyMedium: TextStyle(color: Colors.white)), // Textos em branco
       ),
       // home: ListarRemediosScreen(),
-      initialRoute: '/splash',
+      initialRoute: '/settings',
       routes: {
         '/splash': (context) => SplashScreen(),
         '/login': (context) => LoginScreen(),
