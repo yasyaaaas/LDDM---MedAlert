@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import
+
 import 'package:flutter/material.dart';
 import 'package:med_alert/features/ListarRemedios/test_screen.dart';
 import 'package:med_alert/shared/dao/remedio_dao.dart';
@@ -8,7 +10,6 @@ import 'features/SingupLogin/login_screen.dart';
 import 'features/SingupLogin/signup_screen.dart';
 import 'features/TelasPrincipais/account_screen.dart';
 import 'features/TelasPrincipais/settings_screen.dart';
-import 'features/ListarRemedios/test_screen.dart';
 
 
 void main() {
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
         textTheme: TextTheme(bodyMedium: TextStyle(color: Colors.white)), // Textos em branco
       ),
       // home: ListarRemediosScreen(),
-      initialRoute: '/settings',
+      initialRoute: '/home',
       routes: {
         '/splash': (context) => SplashScreen(),
         '/login': (context) => LoginScreen(),

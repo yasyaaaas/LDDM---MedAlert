@@ -4,6 +4,7 @@ import 'package:med_alert/shared/models/remedio_model.dart';
 
 class TestScreen extends StatefulWidget {
   @override
+  // ignore: library_private_types_in_public_api
   _TestScreenState createState() => _TestScreenState();
 }
 

@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 import 'package:med_alert/shared/models/remedio_model.dart';
 import 'package:med_alert/shared/models/usuario_model.dart';
 

@@ -1,9 +1,12 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:med_alert/shared/dao/remedio_dao.dart';
 import 'package:med_alert/shared/models/remedio_model.dart';
 
 class SaveMedScreen extends StatefulWidget {
   @override
+  // ignore: library_private_types_in_public_api
   _SaveMedScreenState createState() => _SaveMedScreenState();
 }
 
@@ -173,6 +176,7 @@ class SaveMedScreenForm extends StatefulWidget {
   SaveMedScreenForm({this.remedio});
 
   @override
+  // ignore: library_private_types_in_public_api
   _SaveMedScreenFormState createState() => _SaveMedScreenFormState();
 }
 

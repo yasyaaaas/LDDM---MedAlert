@@ -1,3 +1,5 @@
+// ignore_for_file: depend_on_referenced_packages, constant_identifier_names, unused_element
+
 import 'dart:async';
 
 import 'package:med_alert/shared/dao/sql.dart';
