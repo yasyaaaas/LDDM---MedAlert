@@ -10,7 +10,8 @@ class SaveMedScreen extends StatefulWidget {
 const Color backgroundColor = Colors.white;
 
 class _SaveMedScreenState extends State<SaveMedScreen> {
-  final RemedioDao _remedioDao = RemedioDao(); // Instância do DAO para acessar o banco de dados
+  final RemedioDao _remedioDao =
+      RemedioDao(); // Instância do DAO para acessar o banco de dados
   List<Remedio> _medications = []; // Lista para armazenar os medicamentos
 
   @override
@@ -21,14 +22,17 @@ class _SaveMedScreenState extends State<SaveMedScreen> {
 
   Future<void> _fetchMedications() async {
     // Busca os medicamentos no banco de dados
+    await _remedioDao.deletarFrequenciaInvalida(); // Exclui registros inválidos
     List<Remedio> medications = await _remedioDao.selecionarTodos();
     setState(() {
-      _medications = medications; // Atualiza o estado com a lista de medicamentos
+      _medications =
+          medications; // Atualiza o estado com a lista de medicamentos
     });
   }
 
   Future<void> _deleteMedication(int id) async {
-    await _remedioDao.deletar(Remedio(id: id, nome: '', tipo: '', dosagem: '', frequencia: 0, horario: null));
+    await _remedioDao.deletar(Remedio(
+        id: id, nome: '', tipo: '', dosagem: '', frequencia: 0, horario: null));
     _fetchMedications(); // Atualiza a lista após deletar
   }
 
@@ -36,7 +40,8 @@ class _SaveMedScreenState extends State<SaveMedScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SaveMedScreenForm(remedio: med), // Tela de formulário para edição
+        builder: (context) =>
+            SaveMedScreenForm(remedio: med), // Tela de formulário para edição
       ),
     ).then((_) {
       _fetchMedications(); // Atualiza a lista após a edição
@@ -47,7 +52,8 @@ class _SaveMedScreenState extends State<SaveMedScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SaveMedScreenForm(), // Tela de formulário para adição
+        builder: (context) =>
+            SaveMedScreenForm(), // Tela de formulário para adição
       ),
     ).then((_) {
       _fetchMedications(); // Atualiza a lista após adicionar
@@ -85,20 +91,23 @@ class _SaveMedScreenState extends State<SaveMedScreen> {
                 return ListTile(
                   leading: Icon(Icons.medication, color: Colors.red),
                   title: Text(med.nome),
-                  subtitle: Text("Dosagem: ${med.dosagem}, Frequência: ${med.frequencia} vezes ao dia, Horário: ${med.horario ?? 'N/A'}"),
+                  subtitle: Text(
+                      "Dosagem: ${med.dosagem}, Frequência: ${med.frequencia} vezes ao dia, Horário: ${med.horario ?? 'N/A'}"),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
                         icon: Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () => _editMedication(med), // Edita o medicamento
+                        onPressed: () =>
+                            _editMedication(med), // Edita o medicamento
                       ),
                       IconButton(
                         icon: Icon(Icons.delete, color: Colors.red),
                         onPressed: () async {
                           bool confirm = await _showDeleteConfirmation();
                           if (confirm) {
-                            _deleteMedication(med.id!); // Deleta o medicamento após confirmação
+                            _deleteMedication(med
+                                .id!); // Deleta o medicamento após confirmação
                           }
                         },
                       ),
@@ -112,22 +121,24 @@ class _SaveMedScreenState extends State<SaveMedScreen> {
 
   Future<bool> _showDeleteConfirmation() async {
     return await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Confirmação de Exclusão'),
-        content: Text('Tem certeza de que deseja excluir este medicamento?'),
-        actions: [
-          TextButton(
-            child: Text('Cancelar'),
-            onPressed: () => Navigator.of(context).pop(false),
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Confirmação de Exclusão'),
+            content:
+                Text('Tem certeza de que deseja excluir este medicamento?'),
+            actions: [
+              TextButton(
+                child: Text('Cancelar'),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+              TextButton(
+                child: Text('Excluir'),
+                onPressed: () => Navigator.of(context).pop(true),
+              ),
+            ],
           ),
-          TextButton(
-            child: Text('Excluir'),
-            onPressed: () => Navigator.of(context).pop(true),
-          ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
 }
 
@@ -194,7 +205,8 @@ class _SaveMedScreenFormState extends State<SaveMedScreenForm> {
             Navigator.of(context).pop();
           },
         ),
-        title: Text(widget.remedio == null ? 'Adicionar Remédio' : 'Editar Remédio'),
+        title: Text(
+            widget.remedio == null ? 'Adicionar Remédio' : 'Editar Remédio'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -219,7 +231,8 @@ class _SaveMedScreenFormState extends State<SaveMedScreenForm> {
               ),
               TextFormField(
                 controller: _frequencyController,
-                decoration: InputDecoration(labelText: 'Frequência (vezes ao dia)'),
+                decoration:
+                    InputDecoration(labelText: 'Frequência (vezes ao dia)'),
                 keyboardType: TextInputType.number,
               ),
               TextFormField(
@@ -230,7 +243,8 @@ class _SaveMedScreenFormState extends State<SaveMedScreenForm> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _saveMedication,
-                child: Text(widget.remedio == null ? 'Adicionar' : 'Salvar Alterações'),
+                child: Text(
+                    widget.remedio == null ? 'Adicionar' : 'Salvar Alterações'),
               ),
             ],
           ),
