@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:med_alert/shared/dao/remedio_dao.dart';
+import 'package:med_alert/shared/models/remedio_model.dart';
 
 class NewMedicationScreen extends StatefulWidget {
   @override
@@ -14,6 +16,8 @@ class _NewMedicationScreenState extends State<NewMedicationScreen> {
   final TextEditingController _doseController = TextEditingController();
   final TextEditingController _frequencyController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
+
+  final RemedioDao _remedioDao = RemedioDao(); // Instância do DAO para manipular o banco de dados
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +48,7 @@ class _NewMedicationScreenState extends State<NewMedicationScreen> {
           ],
         ),
       ),
-      body: Center( 
+      body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
           child: Form(
@@ -76,13 +80,35 @@ class _NewMedicationScreenState extends State<NewMedicationScreen> {
                 ),
                 SizedBox(height: 30),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      // Lógica para salvar o novo remédio
-                      print('Remédio: ${_nameController.text}');
-                      print('Dosagem: ${_doseController.text}mg');
-                      print('Frequência: ${_frequencyController.text} vezes ao dia');
-                      print('Horário: ${_timeController.text}');
+                      // Criar uma instância de Remedio com os dados do formulário
+                      Remedio novoRemedio = Remedio(
+                        nome: _nameController.text,
+                        tipo: "Medicamento", // Pode ser alterado conforme necessário
+                        dosagem: _doseController.text,
+                        frequencia: int.tryParse(_frequencyController.text),
+                        horario: _timeController.text,
+                      );
+
+
+
+                      try {
+                        // Salvar no banco de dados usando o RemedioDao
+                        await _remedioDao.adicionar(novoRemedio);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Remédio adicionado com sucesso!')),
+                        );
+                        // Limpar os campos após adicionar
+                        _nameController.clear();
+                        _doseController.clear();
+                        _frequencyController.clear();
+                        _timeController.clear();
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Erro ao adicionar o remédio: $e')),
+                        );
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -111,7 +137,7 @@ class _NewMedicationScreenState extends State<NewMedicationScreen> {
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        floatingLabelBehavior: FloatingLabelBehavior.always, 
+        floatingLabelBehavior: FloatingLabelBehavior.always,
         labelStyle: TextStyle(
           color: Colors.black,
           fontWeight: FontWeight.bold,

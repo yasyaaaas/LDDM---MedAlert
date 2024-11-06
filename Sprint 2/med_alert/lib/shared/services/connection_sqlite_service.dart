@@ -8,36 +8,38 @@ import 'package:path/path.dart';
 class ConnectionSqliteService {
   ConnectionSqliteService._();
 
-  static ConnectionSqliteService? _instance;
-
-  static ConnectionSqliteService get instance {
-    _instance ??= ConnectionSqliteService._(); //Instancia a classe 
-    return _instance!; //Retorna se ja tiver sido criada
-  }
-
-
+  static final ConnectionSqliteService _instance = ConnectionSqliteService._();
   static const DATABASE_NAME = 'MedAlertDB';
   static const DATABASE_VERSION = 1;
+
   Database? _db;
 
-  Future<Database> get db => openDatabase();
+  static ConnectionSqliteService get instance => _instance;
 
-  Future<Database> openDatabase() async{
-    sqfliteFfiInit();
-    String databasePath = await databaseFactoryFfi.getDatabasesPath();
-    String path = join(databasePath, DATABASE_NAME);
-    DatabaseFactory databaseFactory = databaseFactoryFfi;
-
-    _db ??= await databaseFactory.openDatabase(path, options: OpenDatabaseOptions(
-        onCreate: _onCreate,
-        version: DATABASE_VERSION, 
-        ));
+  Future<Database> get db async {
+    if (_db != null) return _db!;
+    _db = await _initDatabase();
     return _db!;
   }
 
-  FutureOr<void> _onCreate(Database db, int version){
-    db.transaction((reference) async{
-      reference.execute(ConnectionSQL.CREATE_DATABASE);
-    });
+  Future<Database> _initDatabase() async {
+    String databasePath = await getDatabasesPath();
+    String path = join(databasePath, DATABASE_NAME);
+
+    return await openDatabase(
+      path,
+      version: DATABASE_VERSION,
+      onCreate: _onCreate,
+    );
+  }
+
+  Future<void> _onCreate(Database db, int version) async {
+    await db.execute(ConnectionSQL.CREATE_DATABASE);
   }
 }
+
+
+  FutureOr<void> _onCreate(Database db, int version) async {
+  await db.execute(ConnectionSQL.CREATE_DATABASE);
+}
+
