@@ -185,9 +185,11 @@ class _SaveMedScreenFormState extends State<SaveMedScreenForm> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _doseController = TextEditingController();
   final TextEditingController _frequencyController = TextEditingController();
-  final TextEditingController _timeController = TextEditingController();
-
+  final List<TextEditingController> _timeControllers = [];
   final RemedioDao _remedioDao = RemedioDao();
+
+  // ignore: unused_field
+  int _frequencia = 0;
 
   @override
   void initState() {
@@ -196,19 +198,35 @@ class _SaveMedScreenFormState extends State<SaveMedScreenForm> {
       _nameController.text = widget.remedio!.nome;
       _doseController.text = widget.remedio!.dosagem;
       _frequencyController.text = widget.remedio!.frequencia?.toString() ?? '';
-      _timeController.text = widget.remedio!.horario ?? '';
+      _updateHorarioFields(widget.remedio!.frequencia ?? 0);
+      for (int i = 0; i < _timeControllers.length; i++) {
+        _timeControllers[i].text = widget.remedio!.horario ?? '';
+      }
     }
+  }
+
+  void _updateHorarioFields(int frequencia) {
+    setState(() {
+      _frequencia = frequencia;
+      _timeControllers.clear();
+      for (int i = 0; i < frequencia; i++) {
+        _timeControllers.add(TextEditingController());
+      }
+    });
   }
 
   Future<void> _saveMedication() async {
     if (_formKey.currentState!.validate()) {
+      List<String> horarios =
+          _timeControllers.map((controller) => controller.text).toList();
+
       Remedio novoRemedio = Remedio(
         id: widget.remedio?.id,
         nome: _nameController.text,
         tipo: "Medicamento",
         dosagem: _doseController.text,
         frequencia: int.tryParse(_frequencyController.text),
-        horario: _timeController.text,
+        horario: horarios.join(','),
       );
 
       if (widget.remedio == null) {
@@ -234,7 +252,7 @@ class _SaveMedScreenFormState extends State<SaveMedScreenForm> {
           },
         ),
         title: Text(
-          widget.remedio == null ? 'Adicionar Remédio' : 'Editar Remédio',
+          widget.remedio == null ? 'Adicionar Novo Remédio' : 'Editar Remédio',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 23.0,
@@ -244,71 +262,85 @@ class _SaveMedScreenFormState extends State<SaveMedScreenForm> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Nome do Remédio',
-                  labelStyle: TextStyle(
-                      fontSize: 21), // Aumenta o tamanho do texto do rótulo
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                buildTextField(
+                  controller: _nameController,
+                  label: 'Nome do Remédio',
                 ),
-                style: TextStyle(
-                    fontSize: 21), // Aumenta o tamanho do texto de entrada
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira o nome do remédio';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _doseController,
-                decoration: InputDecoration(
-                  labelText: 'Dosagem (mg)',
-                  labelStyle: TextStyle(fontSize: 21),
+                SizedBox(height: 20),
+                buildTextField(
+                  controller: _doseController,
+                  label: 'Dosagem (mg)',
+                  keyboardType: TextInputType.number,
                 ),
-                style: TextStyle(fontSize: 21),
-                keyboardType: TextInputType.number,
-              ),
-              TextFormField(
-                controller: _frequencyController,
-                decoration: InputDecoration(
-                  labelText: 'Frequência (vezes ao dia)',
-                  labelStyle: TextStyle(fontSize: 21),
+                SizedBox(height: 20),
+                buildTextField(
+                  controller: _frequencyController,
+                  label: 'Frequência (vezes ao dia)',
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    int frequencia = int.tryParse(value) ?? 0;
+                    _updateHorarioFields(frequencia);
+                  },
                 ),
-                style: TextStyle(fontSize: 21),
-                keyboardType: TextInputType.number,
-              ),
-              TextFormField(
-                controller: _timeController,
-                decoration: InputDecoration(
-                  labelText: 'Horário (Ex: 08:00)',
-                  labelStyle: TextStyle(fontSize: 21),
+                SizedBox(height: 20),
+                ...List.generate(
+                  _timeControllers.length,
+                  (index) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: buildTextField(
+                      controller: _timeControllers[index],
+                      label: 'Horário ${index + 1} (Ex: 08:00)',
+                      keyboardType: TextInputType.datetime,
+                    ),
+                  ),
                 ),
-                style: TextStyle(fontSize: 21),
-                keyboardType: TextInputType.datetime,
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _saveMedication,
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(
-                      vertical: 15,
-                      horizontal: 20), // Aumenta o tamanho do botão
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _saveMedication,
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                  ),
+                  child: Text(
+                    widget.remedio == null
+                        ? 'Adicionar Remédio'
+                        : 'Salvar Alterações',
+                    style: TextStyle(fontSize: 20),
+                  ),
                 ),
-                child: Text(
-                  widget.remedio == null ? 'Adicionar' : 'Salvar Alterações',
-                  style: TextStyle(
-                      fontSize: 20), // Aumenta o tamanho do texto do botão
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget buildTextField({
+    required TextEditingController controller,
+    required String label,
+    TextInputType keyboardType = TextInputType.text,
+    Function(String)? onChanged,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(fontSize: 21),
+      ),
+      style: TextStyle(fontSize: 21),
+      keyboardType: keyboardType,
+      onChanged: onChanged,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Por favor, preencha este campo';
+        }
+        return null;
+      },
     );
   }
 }

@@ -4,6 +4,7 @@ import 'account_screen.dart';
 import 'settings_screen.dart';
 import 'package:med_alert/shared/dao/remedio_dao.dart'; // Import do DAO
 import 'package:med_alert/shared/models/remedio_model.dart'; // Import do modelo de Remédio
+import 'package:med_alert/notification_service.dart'; // Import para notificações 
 
 const Color backgroundColor = Colors.white;
 
@@ -56,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 23.0,
-              color: Colors.black, 
+              color: Colors.black,
             ),
           ),
         ),
@@ -69,7 +70,8 @@ class _HomeScreenState extends State<HomeScreen> {
         child: _widgetOptions
             .elementAt(_selectedIndex), // Mostrar apenas o body da tela atual
       ),
-      floatingActionButton: _selectedIndex == 0 // Mostrar botão flutuante apenas na tela de notificações
+      floatingActionButton: _selectedIndex ==
+              0 // Mostrar botão flutuante apenas na tela de notificações
           ? FloatingActionButton(
               onPressed: _openCamera,
               child: Icon(Icons.camera_alt),
@@ -114,53 +116,91 @@ class NotificationScreen extends StatefulWidget {
 class _NotificationScreenState extends State<NotificationScreen> {
   final RemedioDao _remedioDao = RemedioDao();
   List<Remedio> _remedios = [];
-  Map<int, bool> _tomados = {};  // Mapa para armazenar o estado de "tomado"
-  List<Remedio> _historico = []; // Lista para armazenar os históricos de notificações
+  Map<int, bool> _tomados = {};
+  List<Remedio> _historico = [];
 
   @override
   void initState() {
     super.initState();
+    NotificationService().init(); // Inicialize o serviço de notificações aqui
     _fetchRemedios();
   }
 
-  // Função para buscar os medicamentos do banco
   Future<void> _fetchRemedios() async {
-  await _remedioDao.deletarFrequenciaInvalida(); // Exclui registros inválidos
-  List<Remedio> remedios = await _remedioDao.selecionarTodos();
+    await _remedioDao.deletarFrequenciaInvalida();
+    List<Remedio> remedios = await _remedioDao.selecionarTodos();
 
-  // Tente converter o horário para DateTime
-  remedios.sort((a, b) {
-    // Verifica se o horário é válido antes de comparar
-    DateTime? horaA = _parseHorario(a.horario);
-    DateTime? horaB = _parseHorario(b.horario);
-
-    // Se ambos os horários são válidos, compare-os
-    if (horaA != null && horaB != null) {
-      return horaA.compareTo(horaB);
-    } else {
-      // Se algum horário for inválido, considera como maior para que ele vá para o final
-      return 1;
+    List<Remedio> remediosSeparados = [];
+    for (var remedio in remedios) {
+      List<String> horarios = remedio.horario?.split(',') ?? [];
+      for (var horario in horarios) {
+        remediosSeparados.add(Remedio(
+          id: remedio.id,
+          tipo: remedio.tipo,
+          nome: remedio.nome,
+          horario: horario.trim(),
+          dosagem: remedio.dosagem,
+          frequencia: remedio.frequencia,
+        ));
+      }
     }
-  });
 
-  setState(() {
-    _remedios = remedios; // Atualiza a lista com os medicamentos
-  });
-}
+    remediosSeparados.sort((a, b) {
+      DateTime? horaA = _parseHorario(a.horario ?? "00:00");
+      DateTime? horaB = _parseHorario(b.horario ?? "00:00");
+      if (horaA != null && horaB != null) {
+        return horaA.compareTo(horaB);
+      }
+      return 0;
+    });
 
-// Função para converter a string de horário para DateTime
-DateTime? _parseHorario(String? horario) {
-  if (horario == null) return null;
-  
-  // Suponha que o formato do horário seja 'HH:mm', se for diferente, ajuste a lógica
-  try {
-    return DateTime.parse('2024-01-01 $horario');  // Adiciona uma data arbitrária
-  } catch (e) {
-    print('Erro ao converter horário: $horario');
+    for (var remedio in remediosSeparados) {
+      _scheduleNotification(remedio);
+    }
+
+    setState(() {
+      _remedios = remediosSeparados;
+    });
+
+    // Atualização do histórico
+    _historico.sort((a, b) {
+      DateTime? horaA = _parseHorario(a.horario ?? "00:00");
+      DateTime? horaB = _parseHorario(b.horario ?? "00:00");
+      if (horaA != null && horaB != null) {
+        return horaA.compareTo(horaB);
+      }
+      return 0;
+    });
+  }
+
+  DateTime? _parseHorario(String horario) {
+    try {
+      final parts = horario.split(':');
+      if (parts.length == 2) {
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+        return DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, hour, minute);
+      }
+    } catch (e) {
+      print('Erro ao converter horário: $horario');
+    }
     return null;
   }
-}
-  // Função para exibir o popup de tomada do medicamento
+  
+  Future<void> _scheduleNotification(Remedio remedio) async {
+    DateTime? horario = _parseHorario(remedio.horario ?? "00:00");
+    if (horario != null && horario.isAfter(DateTime.now())) {
+      await NotificationService().scheduleNotification(
+        id: remedio.id ?? 0,
+        title: 'Hora de tomar ${remedio.nome}',
+        body: 'Dosagem: ${remedio.dosagem}',
+        scheduledTime: horario,
+        payload: remedio.nome,
+      );
+    }
+  }
+
+  // Exibir o popup de tomada
   Future<void> _showTakenPopup(Remedio remedio) async {
     bool? taken = await showDialog<bool>(
       context: context,
@@ -187,18 +227,10 @@ DateTime? _parseHorario(String? horario) {
     );
 
     if (taken != null) {
-      // Atualiza o estado local de "tomado"
       setState(() {
         _tomados[remedio.id!] = taken;
+        _historico.add(remedio); // Adiciona ao histórico
       });
-
-      // Adiciona ao histórico, mesmo que não tenha sido tomado
-      setState(() {
-        _historico.add(remedio);
-      });
-
-      // Recarrega os dados após a atualização
-      _fetchRemedios();
     }
   }
 
@@ -211,7 +243,8 @@ DateTime? _parseHorario(String? horario) {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Central de Notificações',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)),
+                style: TextStyle(
+                    fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)),
             SizedBox(height: 20),
             Container(
               padding: EdgeInsets.all(10),
@@ -233,7 +266,7 @@ DateTime? _parseHorario(String? horario) {
                         Container(
                           width: double.infinity,
                           height: 80,
-                          color: Colors.white, // Cor branca quando não há histórico
+                          color: Colors.white,
                           child: Center(
                             child: Text(
                               'Nenhum remédio cadastrado',
@@ -242,39 +275,39 @@ DateTime? _parseHorario(String? horario) {
                           ),
                         ),
                       ]
-                : _remedios.map((remedio) {
-                  return GestureDetector(
-                    onTap: () => _showTakenPopup(remedio), // Ao clicar, exibe o popup
-                    child: Container(
-                      width: double.infinity,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      margin: EdgeInsets.only(bottom: 10),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.timer, size: 24),
-                            Text(remedio.horario ?? 'Sem horário',
-                                style: TextStyle(fontSize: 16, color: Colors.black)),
-                            Text(remedio.nome,
-                                style: TextStyle(fontSize: 18, color: Colors.black)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+                    : _remedios.map((remedio) {
+                        return GestureDetector(
+                          onTap: () => _showTakenPopup(remedio),
+                          child: Container(
+                            width: double.infinity,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            margin: EdgeInsets.only(bottom: 10),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.timer, size: 24),
+                                  Text(remedio.horario ?? 'Sem horário',
+                                      style: TextStyle(fontSize: 16, color: Colors.black)),
+                                  Text(remedio.nome,
+                                      style: TextStyle(fontSize: 18, color: Colors.black)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
               ),
             ),
             SizedBox(height: 40),
             Text('Histórico de Notificações',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)),
+                style: TextStyle(
+                    fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)),
             SizedBox(height: 20),
-            // Exibe o histórico de notificações
             Container(
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -295,7 +328,7 @@ DateTime? _parseHorario(String? horario) {
                         Container(
                           width: double.infinity,
                           height: 80,
-                          color: Colors.white, // Cor branca quando não há histórico
+                          color: Colors.white,
                           child: Center(
                             child: Text(
                               'Nenhum histórico de notificações',
@@ -305,7 +338,7 @@ DateTime? _parseHorario(String? horario) {
                         ),
                       ]
                     : _historico.map((remedio) {
-                        bool taken = _tomados[remedio.id!] ?? false; // Verifica se o remédio foi tomado localmente
+                        bool taken = _tomados[remedio.id!] ?? false;
                         return Container(
                           width: double.infinity,
                           height: 80,
@@ -336,4 +369,3 @@ DateTime? _parseHorario(String? horario) {
     );
   }
 }
-

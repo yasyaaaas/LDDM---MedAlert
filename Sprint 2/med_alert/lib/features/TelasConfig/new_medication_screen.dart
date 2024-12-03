@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:med_alert/shared/dao/remedio_dao.dart';
 import 'package:med_alert/shared/models/remedio_model.dart';
@@ -17,9 +15,32 @@ class _NewMedicationScreenState extends State<NewMedicationScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _doseController = TextEditingController();
   final TextEditingController _frequencyController = TextEditingController();
-  final TextEditingController _timeController = TextEditingController();
 
-  final RemedioDao _remedioDao = RemedioDao(); // Instância do DAO para manipular o banco de dados
+  final List<TextEditingController> _timeControllers = [];
+  final RemedioDao _remedioDao = RemedioDao();
+
+  int _frequencia = 0;
+
+  void _updateHorarioFields(int frequencia) {
+    setState(() {
+      _frequencia = frequencia;
+      _timeControllers.clear();
+      for (int i = 0; i < frequencia; i++) {
+        _timeControllers.add(TextEditingController());
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _doseController.dispose();
+    _frequencyController.dispose();
+    for (var controller in _timeControllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +77,6 @@ class _NewMedicationScreenState extends State<NewMedicationScreen> {
           child: Form(
             key: _formKey,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 buildTextField(
                   controller: _nameController,
@@ -73,39 +93,57 @@ class _NewMedicationScreenState extends State<NewMedicationScreen> {
                   controller: _frequencyController,
                   label: 'Frequência (vezes ao dia)',
                   keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    final freq = int.tryParse(value) ?? 0;
+                    _updateHorarioFields(freq);
+                  },
                 ),
                 SizedBox(height: 20),
-                buildTextField(
-                  controller: _timeController,
-                  label: 'Horário (Ex: 08:00)',
-                  keyboardType: TextInputType.datetime,
-                ),
+                ..._timeControllers.asMap().entries.map((entry) {
+                  final index = entry.key + 1;
+                  final controller = entry.value;
+                  return Column(
+                    children: [
+                      buildTextField(
+                        controller: controller,
+                        label: 'Horário $index (Ex: 08:00)',
+                        keyboardType: TextInputType.datetime,
+                      ),
+                      SizedBox(height: 10),
+                    ],
+                  );
+                }).toList(),
                 SizedBox(height: 30),
                 ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      // Criar uma instância de Remedio com os dados do formulário
-                      Remedio novoRemedio = Remedio(
-                        nome: _nameController.text,
-                        tipo: "Medicamento", // Pode ser alterado conforme necessário
-                        dosagem: _doseController.text,
-                        frequencia: int.tryParse(_frequencyController.text),
-                        horario: _timeController.text,
-                      );
-
-
-
                       try {
-                        // Salvar no banco de dados usando o RemedioDao
+                        // Cria uma lista de horários concatenados
+                        final horarios = _timeControllers
+                            .map((controller) => controller.text)
+                            .join(',');
+
+                        // Cria a instância do remédio
+                        Remedio novoRemedio = Remedio(
+                          nome: _nameController.text,
+                          tipo: "Medicamento",
+                          dosagem: _doseController.text,
+                          frequencia: _frequencia,
+                          horario: horarios,
+                        );
+
+                        // Salva no banco de dados
                         await _remedioDao.adicionar(novoRemedio);
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Remédio adicionado com sucesso!')),
                         );
-                        // Limpar os campos após adicionar
+
+                        // Limpa os campos
                         _nameController.clear();
                         _doseController.clear();
                         _frequencyController.clear();
-                        _timeController.clear();
+                        _updateHorarioFields(0);
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Erro ao adicionar o remédio: $e')),
@@ -134,6 +172,7 @@ class _NewMedicationScreenState extends State<NewMedicationScreen> {
     required TextEditingController controller,
     required String label,
     TextInputType keyboardType = TextInputType.text,
+    Function(String)? onChanged,
   }) {
     return TextFormField(
       controller: controller,
@@ -161,6 +200,7 @@ class _NewMedicationScreenState extends State<NewMedicationScreen> {
         }
         return null;
       },
+      onChanged: onChanged,
     );
   }
 }
