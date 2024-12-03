@@ -4,7 +4,7 @@ import 'account_screen.dart';
 import 'settings_screen.dart';
 import 'package:med_alert/shared/dao/remedio_dao.dart'; // Import do DAO
 import 'package:med_alert/shared/models/remedio_model.dart'; // Import do modelo de Remédio
-import 'package:med_alert/notification_service.dart'; // Import para notificações 
+import 'package:med_alert/notification_service.dart'; // Import para notificações
 
 const Color backgroundColor = Colors.white;
 
@@ -179,17 +179,22 @@ class _NotificationScreenState extends State<NotificationScreen> {
       if (parts.length == 2) {
         final hour = int.parse(parts[0]);
         final minute = int.parse(parts[1]);
-        return DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, hour, minute);
+        return DateTime(DateTime.now().year, DateTime.now().month,
+            DateTime.now().day, hour, minute);
       }
     } catch (e) {
       print('Erro ao converter horário: $horario');
     }
     return null;
   }
-  
+
   Future<void> _scheduleNotification(Remedio remedio) async {
     DateTime? horario = _parseHorario(remedio.horario ?? "00:00");
-    if (horario != null && horario.isAfter(DateTime.now())) {
+    if (horario != null) {
+      // Se o horário já passou, agende para o próximo dia
+      if (horario.isBefore(DateTime.now())) {
+        horario = horario.add(Duration(days: 1));
+      }
       await NotificationService().scheduleNotification(
         id: remedio.id ?? 0,
         title: 'Hora de tomar ${remedio.nome}',
@@ -244,7 +249,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
           children: [
             Text('Central de Notificações',
                 style: TextStyle(
-                    fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)),
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black)),
             SizedBox(height: 20),
             Container(
               padding: EdgeInsets.all(10),
@@ -270,7 +277,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           child: Center(
                             child: Text(
                               'Nenhum remédio cadastrado',
-                              style: TextStyle(color: Colors.black, fontSize: 20),
+                              style:
+                                  TextStyle(color: Colors.black, fontSize: 20),
                             ),
                           ),
                         ),
@@ -292,9 +300,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 children: [
                                   Icon(Icons.timer, size: 24),
                                   Text(remedio.horario ?? 'Sem horário',
-                                      style: TextStyle(fontSize: 16, color: Colors.black)),
+                                      style: TextStyle(
+                                          fontSize: 16, color: Colors.black)),
                                   Text(remedio.nome,
-                                      style: TextStyle(fontSize: 18, color: Colors.black)),
+                                      style: TextStyle(
+                                          fontSize: 18, color: Colors.black)),
                                 ],
                               ),
                             ),
@@ -306,7 +316,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
             SizedBox(height: 40),
             Text('Histórico de Notificações',
                 style: TextStyle(
-                    fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)),
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black)),
             SizedBox(height: 20),
             Container(
               padding: EdgeInsets.all(10),
@@ -332,7 +344,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           child: Center(
                             child: Text(
                               'Nenhum histórico de notificações',
-                              style: TextStyle(color: Colors.black, fontSize: 20),
+                              style:
+                                  TextStyle(color: Colors.black, fontSize: 20),
                             ),
                           ),
                         ),
@@ -353,9 +366,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               children: [
                                 Icon(Icons.timer, size: 24),
                                 Text(remedio.horario ?? 'Sem horário',
-                                    style: TextStyle(fontSize: 16, color: Colors.black)),
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.black)),
                                 Text(remedio.nome,
-                                    style: TextStyle(fontSize: 18, color: Colors.black)),
+                                    style: TextStyle(
+                                        fontSize: 18, color: Colors.black)),
                               ],
                             ),
                           ),

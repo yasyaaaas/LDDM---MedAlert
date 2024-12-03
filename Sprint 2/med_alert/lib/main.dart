@@ -33,7 +33,7 @@ Future<void> requestExactAlarmPermission() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService().init();
-  //await requestExactAlarmPermission();
+  await requestExactAlarmPermission();
   runApp(MyApp());
 }
 

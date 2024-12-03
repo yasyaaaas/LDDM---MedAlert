@@ -31,6 +31,18 @@ class _NewMedicationScreenState extends State<NewMedicationScreen> {
     });
   }
 
+  Future<void> _selectTime(BuildContext context, TextEditingController controller) async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (pickedTime != null) {
+      final formattedTime = pickedTime.format(context);
+      controller.text = formattedTime;
+    }
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -104,10 +116,9 @@ class _NewMedicationScreenState extends State<NewMedicationScreen> {
                   final controller = entry.value;
                   return Column(
                     children: [
-                      buildTextField(
+                      buildTimeField(
                         controller: controller,
-                        label: 'Horário $index (Ex: 08:00)',
-                        keyboardType: TextInputType.datetime,
+                        label: 'Horário $index (Ex: 22:05)',
                       ),
                       SizedBox(height: 10),
                     ],
@@ -201,6 +212,44 @@ class _NewMedicationScreenState extends State<NewMedicationScreen> {
         return null;
       },
       onChanged: onChanged,
+    );
+  }
+  Widget buildTimeField({
+    required TextEditingController controller,
+    required String label,
+  }) {
+    return GestureDetector(
+      onTap: () async {
+        await _selectTime(context, controller);
+      },
+      child: AbsorbPointer(
+        child: TextFormField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: label,
+            floatingLabelBehavior: FloatingLabelBehavior.always,
+            labelStyle: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 22.0,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.black, width: 2.0),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.black, width: 2.0),
+            ),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+          ),
+          style: TextStyle(fontSize: 20, color: Colors.black),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Por favor, insira $label'.toLowerCase();
+            }
+            return null;
+          },
+        ),
+      ),
     );
   }
 }

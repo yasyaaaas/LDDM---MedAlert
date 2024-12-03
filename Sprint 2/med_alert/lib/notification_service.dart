@@ -11,7 +11,8 @@ class NotificationService {
   }
 
   NotificationService._internal() {
-    tz.initializeTimeZones(); // Inicialize o timezone aqui
+    tz.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('America/Sao_Paulo'));
   }
 
   Future<void> init() async {
