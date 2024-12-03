@@ -132,7 +132,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 TextFormField(
                   controller: _dataController,
                   decoration: InputDecoration(
-                    labelText: 'Data de Nascimento',
+                    labelText: 'Data de Nascimento (Ex: AAAA-DD-MM)',
                     labelStyle: TextStyle(color: Colors.white, fontSize: 18),
                   ),
                   style: TextStyle(color: Colors.white, fontSize: 18),
@@ -147,7 +147,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
-                    labelText: 'Email',
+                    labelText: 'Email (Ex: xxxxxxx@gmail.com) ',
                     labelStyle: TextStyle(color: Colors.white, fontSize: 18),
                   ),
                   style: TextStyle(color: Colors.white, fontSize: 18),

@@ -34,6 +34,17 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService().init();
   await requestExactAlarmPermission();
+
+  Future.delayed(Duration(seconds: 10), () {
+    NotificationService().scheduleNotification(
+      id: 1,
+      title: 'Teste de Notificação',
+      body: 'Esta é uma notificação de teste.',
+      scheduledTime: DateTime.now().add(Duration(seconds: 10)),
+      payload: 'teste_payload',
+    );
+  });
+
   runApp(MyApp());
 }
 
@@ -65,7 +76,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFF04184B), // Cor de fundo azul escuro
-        textTheme: TextTheme(bodyMedium: TextStyle(color: Colors.white)), // Textos em branco
+        textTheme: TextTheme(
+            bodyMedium: TextStyle(color: Colors.white)), // Textos em branco
       ),
       // home: ListarRemediosScreen(),
       initialRoute: '/splash',
