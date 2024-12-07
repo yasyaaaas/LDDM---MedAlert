@@ -12,21 +12,32 @@ import 'features/SingupLogin/signup_screen.dart';
 import 'features/TelasPrincipais/account_screen.dart';
 import 'features/TelasPrincipais/settings_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 Future<void> requestExactAlarmPermission() async {
   PermissionStatus status = await Permission.notification.request();
-
   if (status.isGranted) {
-    print("Permissão concedida!");
+    print("Permissão da notificação concedida!");
   } else {
-    print("Permissão não concedida.");
+    print("Permissão da notificação não concedida.");
+  }
+}
+
+Future<void> requestCamreraPermission() async {
+  PermissionStatus status = await Permission.camera.request();
+  if (status.isGranted) {
+    print("Permissão da camera concedida!");
+  } else {
+    print("Permissão da camera não concedida.");
   }
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService().init();
+   await Firebase.initializeApp();
   await requestExactAlarmPermission();
+  await requestCamreraPermission();
 
   Future.delayed(Duration(seconds: 10), () {
     NotificationService().scheduleNotification(
