@@ -13,13 +13,6 @@ import 'features/TelasPrincipais/account_screen.dart';
 import 'features/TelasPrincipais/settings_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-/*void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService().init();
-  await requestExactAlarmPermission();
-  runApp(MyApp());
-}*/
-
 Future<void> requestExactAlarmPermission() async {
   PermissionStatus status = await Permission.notification.request();
 
@@ -47,26 +40,6 @@ void main() async {
 
   runApp(MyApp());
 }
-
-/*void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService().init();
-
-  // Teste de notificação (agendar uma notificação 10 segundos no futuro)
-  Future.delayed(Duration(seconds: 10), () {
-    NotificationService().scheduleNotification(
-      id: 1,
-      title: 'Teste de Notificação',
-      body: 'Esta é uma notificação de teste.',
-      scheduledTime: DateTime.now().add(Duration(seconds: 10)), // 10 segundos no futuro
-      payload: 'teste_payload',
-    );
-  });
-
-  
-
-  runApp(MyApp());
-}*/
 
 class MyApp extends StatelessWidget {
   @override

@@ -5,6 +5,8 @@ import 'settings_screen.dart';
 import 'package:med_alert/shared/dao/remedio_dao.dart'; // Import do DAO
 import 'package:med_alert/shared/models/remedio_model.dart'; // Import do modelo de Remédio
 import 'package:med_alert/notification_service.dart'; // Import para notificações
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 const Color backgroundColor = Colors.white;
 
@@ -127,130 +129,191 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Future<void> _fetchRemedios() async {
-  // Remover frequências inválidas do banco de dados
-  await _remedioDao.deletarFrequenciaInvalida();
+    // Remover frequências inválidas do banco de dados
+    await _remedioDao.deletarFrequenciaInvalida();
 
-  // Selecionar todos os remédios do banco de dados
-  List<Remedio> remedios = await _remedioDao.selecionarTodos();
+    // Selecionar todos os remédios do banco de dados
+    List<Remedio> remedios = await _remedioDao.selecionarTodos();
 
-  // Lista para armazenar remédios separados por horário
-  List<Remedio> remediosSeparados = [];
+    // Lista para armazenar remédios separados por horário
+    List<Remedio> remediosSeparados = [];
 
-  // Separar os remédios de acordo com seus horários
-  for (var remedio in remedios) {
-    List<String> horarios = remedio.horario?.split(',') ?? [];
-    for (var horario in horarios) {
-      remediosSeparados.add(
-        Remedio(
-          id: remedio.id,
-          tipo: remedio.tipo,
-          nome: remedio.nome,
-          horario: horario.trim(),
-          dosagem: remedio.dosagem,
-          frequencia: remedio.frequencia,
-        ),
+    // Separar os remédios de acordo com seus horários
+    for (var remedio in remedios) {
+      List<String> horarios = remedio.horario?.split(',') ?? [];
+      for (var horario in horarios) {
+        remediosSeparados.add(
+          Remedio(
+            id: remedio.id,
+            tipo: remedio.tipo,
+            nome: remedio.nome,
+            horario: horario.trim(),
+            dosagem: remedio.dosagem,
+            frequencia: remedio.frequencia,
+          ),
+        );
+      }
+    }
+
+    // Ordenar os remédios pelos horários
+    remediosSeparados.sort((a, b) {
+      DateTime? horaA = _parseHorario(a.horario ?? "00:00");
+      DateTime? horaB = _parseHorario(b.horario ?? "00:00");
+      if (horaA != null && horaB != null) {
+        return horaA.compareTo(horaB);
+      }
+      return 0;
+    });
+
+    // Agendar notificações para cada remédio separado
+    for (int index = 0; index < remediosSeparados.length; index++) {
+      var remedio = remediosSeparados[index];
+      await _scheduleNotification(remedio, index); // Passando o índice correto
+    }
+
+    // Atualizar o estado com os remédios processados
+    setState(() {
+      _remedios = remediosSeparados;
+    });
+
+    // Ordenar o histórico por horário
+    _historico.sort((a, b) {
+      DateTime? horaA = _parseHorario(a.horario ?? "00:00");
+      DateTime? horaB = _parseHorario(b.horario ?? "00:00");
+      if (horaA != null && horaB != null) {
+        return horaA.compareTo(horaB);
+      }
+      return 0;
+    });
+  }
+
+  DateTime? _parseHorario(String horario) {
+    try {
+      final parts = horario.split(':');
+      if (parts.length == 2) {
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+        return DateTime(DateTime.now().year, DateTime.now().month,
+            DateTime.now().day, hour, minute);
+      }
+    } catch (e) {
+      print('Erro ao converter horário: $horario');
+    }
+    return null;
+  }
+
+  Future<void> _scheduleNotification(Remedio remedio, int index) async {
+    DateTime? horario = _parseHorario(remedio.horario ?? "00:00");
+    if (horario != null) {
+      // Se o horário já passou, agende para o próximo dia
+      if (horario.isBefore(DateTime.now())) {
+        horario = horario.add(Duration(days: 1));
+      }
+      await NotificationService().scheduleNotification(
+        id: (remedio.id ?? 0) * 1000 +
+            index, // ID único baseado no ID do remédio e índice
+        title: 'Hora de tomar ${remedio.nome}',
+        body: 'Dosagem: ${remedio.dosagem}',
+        scheduledTime: horario,
+        payload: remedio.nome,
       );
     }
   }
 
-  // Ordenar os remédios pelos horários
-  remediosSeparados.sort((a, b) {
-    DateTime? horaA = _parseHorario(a.horario ?? "00:00");
-    DateTime? horaB = _parseHorario(b.horario ?? "00:00");
-    if (horaA != null && horaB != null) {
-      return horaA.compareTo(horaB);
-    }
-    return 0;
-  });
-
-  // Agendar notificações para cada remédio separado
-  for (int index = 0; index < remediosSeparados.length; index++) {
-    var remedio = remediosSeparados[index];
-    await _scheduleNotification(remedio, index); // Passando o índice correto
-  }
-
-  // Atualizar o estado com os remédios processados
-  setState(() {
-    _remedios = remediosSeparados;
-  });
-
-  // Ordenar o histórico por horário
-  _historico.sort((a, b) {
-    DateTime? horaA = _parseHorario(a.horario ?? "00:00");
-    DateTime? horaB = _parseHorario(b.horario ?? "00:00");
-    if (horaA != null && horaB != null) {
-      return horaA.compareTo(horaB);
-    }
-    return 0;
-  });
-}
-
-DateTime? _parseHorario(String horario) {
-  try {
-    final parts = horario.split(':');
-    if (parts.length == 2) {
-      final hour = int.parse(parts[0]);
-      final minute = int.parse(parts[1]);
-      return DateTime(DateTime.now().year, DateTime.now().month,
-          DateTime.now().day, hour, minute);
-    }
-  } catch (e) {
-    print('Erro ao converter horário: $horario');
-  }
-  return null;
-}
-
-Future<void> _scheduleNotification(Remedio remedio, int index) async {
-  DateTime? horario = _parseHorario(remedio.horario ?? "00:00");
-  if (horario != null) {
-    // Se o horário já passou, agende para o próximo dia
-    if (horario.isBefore(DateTime.now())) {
-      horario = horario.add(Duration(days: 1));
-    }
-    await NotificationService().scheduleNotification(
-      id: (remedio.id ?? 0) * 1000 + index, // ID único baseado no ID do remédio e índice
-      title: 'Hora de tomar ${remedio.nome}',
-      body: 'Dosagem: ${remedio.dosagem}',
-      scheduledTime: horario,
-      payload: remedio.nome,
+  Future<void> _scanBarcodeAndVerifyMedication(Remedio remedio) async {
+    // Abre o scanner de código de barras
+    String barcode = await FlutterBarcodeScanner.scanBarcode(
+      '#ff6666', // Cor do scanner
+      'Cancelar', // Texto do botão cancelar
+      true, // Flash ativado ou não
+      ScanMode.BARCODE, // Modo de escaneamento
     );
+
+    if (barcode != '-1') {
+      // Se não cancelar o escaneamento
+      // Verifique no Firebase se o código de barras existe
+      FirebaseFirestore.instance
+          .collection('remedios')
+          .where('codigoDeBarras', isEqualTo: barcode)
+          .get()
+          .then((querySnapshot) {
+        if (querySnapshot.docs.isNotEmpty) {
+          // Se o código de barras encontrado no Firebase
+          var doc = querySnapshot.docs[0];
+          String nomeNoFirebase = doc['nome'];
+
+          // Comparar o nome do remédio com o nome no banco
+          if (nomeNoFirebase == remedio.nome) {
+            // Se o nome coincidir, considere como tomado
+            _showTakenPopup(remedio);
+          } else {
+            // Caso o nome não coincida
+            _showErrorDialog('Nome do medicamento não corresponde!');
+          }
+        } else {
+          // Se o código de barras não for encontrado
+          _showErrorDialog('Código de barras não encontrado!');
+        }
+      }).catchError((e) {
+        _showErrorDialog('Erro ao verificar o código de barras: $e');
+      });
+    }
   }
-}
 
-
-  // Exibir o popup de tomada
-  Future<void> _showTakenPopup(Remedio remedio) async {
-    bool? taken = await showDialog<bool>(
+  void _showErrorDialog(String message) {
+    showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Você tomou o medicamento?'),
-          content: Text(remedio.nome),
+          title: Text('Erro'),
+          content: Text(message),
           actions: <Widget>[
             TextButton(
-              child: Text('Sim'),
+              child: Text('OK'),
               onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-            ),
-            TextButton(
-              child: Text('Não'),
-              onPressed: () {
-                Navigator.of(context).pop(false);
+                Navigator.of(context).pop();
               },
             ),
           ],
         );
       },
     );
-
-    if (taken != null) {
-      setState(() {
-        _tomados[remedio.id!] = taken;
-        _historico.add(remedio); // Adiciona ao histórico
-      });
-    }
   }
+
+  // Exibir o popup de tomada
+  Future<void> _showTakenPopup(Remedio remedio) async {
+  bool? taken = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Você tomou o medicamento?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(remedio.nome),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                _scanBarcodeAndVerifyMedication(remedio);
+                Navigator.of(context).pop();
+              },
+              child: Text('Escanear código de barras'),
+            ),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Cancelar'),
+            onPressed: () {
+              Navigator.of(context).pop(false);
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
