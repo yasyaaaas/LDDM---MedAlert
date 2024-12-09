@@ -5,7 +5,7 @@ import 'settings_screen.dart';
 import 'package:med_alert/shared/dao/remedio_dao.dart'; // Import do DAO
 import 'package:med_alert/shared/models/remedio_model.dart'; // Import do modelo de Remédio
 import 'package:med_alert/notification_service.dart'; // Import para notificações
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 const Color backgroundColor = Colors.white;
@@ -220,45 +220,68 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
+  /*ElevatedButton(
+              onPressed: () async {
+                String? res = await SimpleBarcodeScanner.scanBarcode(
+                  context,
+                  barcodeAppBar: const BarcodeAppBar(
+                    appBarTitle: 'Test',
+                    centerTitle: false,
+                    enableBackButton: true,
+                    backButtonIcon: Icon(Icons.arrow_back_ios),
+                  ),
+                  isShowFlashIcon: true,
+                  delayMillis: 500,
+                  cameraFace: CameraFace.back,
+                  scanFormat: ScanFormat.ONLY_BARCODE,
+                );
+                setState(() {
+                  result = res as String;
+                });
+              },*/
+
   Future<void> _scanBarcodeAndVerifyMedication(Remedio remedio) async {
-    // Abre o scanner de código de barras
-    String barcode = await FlutterBarcodeScanner.scanBarcode(
-      '#ff6666', // Cor do scanner
-      'Cancelar', // Texto do botão cancelar
-      true, // Flash ativado ou não
-      ScanMode.BARCODE, // Modo de escaneamento
-    );
+  String? barcode = await SimpleBarcodeScanner.scanBarcode(
+    context,
+    barcodeAppBar: BarcodeAppBar(
+      appBarTitle: 'Escanear Código de Barras',
+      centerTitle: false,
+      enableBackButton: true,
+      backButtonIcon: Icon(Icons.arrow_back_ios),
+    ),
+    isShowFlashIcon: true,
+    delayMillis: 500,
+    cameraFace: CameraFace.back,
+    scanFormat: ScanFormat.ONLY_BARCODE,
+  );
 
-    if (barcode != '-1') {
-      // Se não cancelar o escaneamento
-      // Verifique no Firebase se o código de barras existe
-      FirebaseFirestore.instance
-          .collection('remedios')
-          .where('codigoDeBarras', isEqualTo: barcode)
-          .get()
-          .then((querySnapshot) {
-        if (querySnapshot.docs.isNotEmpty) {
-          // Se o código de barras encontrado no Firebase
-          var doc = querySnapshot.docs[0];
-          String nomeNoFirebase = doc['nome'];
+  print('Scanned barcode: $barcode');
 
-          // Comparar o nome do remédio com o nome no banco
-          if (nomeNoFirebase == remedio.nome) {
-            // Se o nome coincidir, considere como tomado
-            _showTakenPopup(remedio);
-          } else {
-            // Caso o nome não coincida
-            _showErrorDialog('Nome do medicamento não corresponde!');
-          }
+  if (barcode != null && barcode != '-1') {
+    // Verifique no Firebase se o código de barras existe
+    FirebaseFirestore.instance
+        .collection('remedios')
+        .where('codigoDeBarras', isEqualTo: barcode)
+        .get()
+        .then((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        var doc = querySnapshot.docs[0];
+        String nomeNoFirebase = doc['nome'];
+
+        // Comparar o nome do remédio com o nome no banco
+        if (nomeNoFirebase == remedio.nome) {
+          _showTakenPopup(remedio);
         } else {
-          // Se o código de barras não for encontrado
-          _showErrorDialog('Código de barras não encontrado!');
+          _showErrorDialog('Nome do medicamento não corresponde!');
         }
-      }).catchError((e) {
-        _showErrorDialog('Erro ao verificar o código de barras: $e');
-      });
-    }
+      } else {
+        _showErrorDialog('Código de barras não encontrado!');
+      }
+    }).catchError((e) {
+      _showErrorDialog('Erro ao verificar o código de barras: $e');
+    });
   }
+}
 
   void _showErrorDialog(String message) {
     showDialog(
@@ -282,38 +305,37 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   // Exibir o popup de tomada
   Future<void> _showTakenPopup(Remedio remedio) async {
-  bool? taken = await showDialog<bool>(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Você tomou o medicamento?'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(remedio.nome),
-            SizedBox(height: 20),
-            ElevatedButton(
+    bool? taken = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Você tomou o medicamento?'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(remedio.nome),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  _scanBarcodeAndVerifyMedication(remedio);
+                  Navigator.of(context).pop();
+                },
+                child: Text('Escanear código de barras'),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancelar'),
               onPressed: () {
-                _scanBarcodeAndVerifyMedication(remedio);
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(false);
               },
-              child: Text('Escanear código de barras'),
             ),
           ],
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: Text('Cancelar'),
-            onPressed: () {
-              Navigator.of(context).pop(false);
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
