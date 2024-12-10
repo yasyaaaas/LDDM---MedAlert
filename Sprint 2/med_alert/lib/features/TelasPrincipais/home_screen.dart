@@ -33,12 +33,17 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // Função para abrir a câmera
   Future<void> _openCamera() async {
-    final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
-    if (photo != null) {
-      // Adicionar a lógica para salvar ou exibir a foto
-      print('Imagem capturada: ${photo.path}');
+    try {
+      final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
+
+      if (photo != null) {
+        print('Imagem capturada: ${photo.path}');
+      } else {
+        print('Nenhuma imagem capturada.');
+      }
+    } catch (e) {
+      print('Erro ao tentar abrir a câmera: $e');
     }
   }
 
@@ -240,56 +245,74 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 });
               },*/
 
-  Future<void> _scanBarcodeAndVerifyMedication(Remedio remedio) async {
-  String? barcode = await SimpleBarcodeScanner.scanBarcode(
-    context,
-    barcodeAppBar: BarcodeAppBar(
-      appBarTitle: 'Escanear Código de Barras',
-      centerTitle: false,
-      enableBackButton: true,
-      backButtonIcon: Icon(Icons.arrow_back_ios),
-    ),
-    isShowFlashIcon: true,
-    delayMillis: 500,
-    cameraFace: CameraFace.back,
-    scanFormat: ScanFormat.ONLY_BARCODE,
-  );
 
-  print('Scanned barcode: $barcode');
+Future<void> _scanBarcodeAndVerifyMedication(Remedio remedio) async {
+  try {
+    // Primeiro, verifique as permissões da câmera
+    // Você pode adicionar uma verificação de permissão aqui se necessário
 
-  if (barcode != null && barcode != '-1') {
-    // Verifique no Firebase se o código de barras existe
-    FirebaseFirestore.instance
-        .collection('remedios')
-        .where('codigoDeBarras', isEqualTo: barcode)
-        .get()
-        .then((querySnapshot) {
+    String? barcode = await SimpleBarcodeScanner.scanBarcode(
+      context,
+      barcodeAppBar: BarcodeAppBar(
+        appBarTitle: 'Escanear Código de Barras',
+        centerTitle: false,
+        enableBackButton: true,
+        backButtonIcon: Icon(Icons.arrow_back_ios),
+      ),
+      isShowFlashIcon: true,
+      delayMillis: 500,
+      cameraFace: CameraFace.back,
+      scanFormat: ScanFormat.ONLY_BARCODE,
+    );
+
+    print('Scanned barcode: $barcode');
+
+    if (barcode != null && barcode != '-1') {
+      await _verificarCodigoDeBarras(remedio, barcode);
+    }
+    } catch (e) {
+      print('Erro no scanner: $e');
+      _showErrorDialog('Não foi possível abrir o scanner: $e');
+    }
+  }
+
+
+  Future<void> _verificarCodigoDeBarras(Remedio remedio, String barcode) async {
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('remedios')
+          .where('codigoDeBarras', isEqualTo: barcode)
+          .get();
+
       if (querySnapshot.docs.isNotEmpty) {
         var doc = querySnapshot.docs[0];
         String nomeNoFirebase = doc['nome'];
 
-        // Comparar o nome do remédio com o nome no banco
         if (nomeNoFirebase == remedio.nome) {
-          _showTakenPopup(remedio);
+          _confirmarTomadaMedicamento(remedio);
         } else {
           _showErrorDialog('Nome do medicamento não corresponde!');
         }
       } else {
         _showErrorDialog('Código de barras não encontrado!');
       }
-    }).catchError((e) {
+    } catch (e) {
       _showErrorDialog('Erro ao verificar o código de barras: $e');
-    });
+    }
   }
-}
 
-  void _showErrorDialog(String message) {
+  void _confirmarTomadaMedicamento(Remedio remedio) {
+    setState(() {
+      _tomados[remedio.id!] = true;
+      _historico.add(remedio);
+    });
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Erro'),
-          content: Text(message),
+          title: Text('Medicamento Confirmado'),
+          content: Text('${remedio.nome} foi registrado como tomado'),
           actions: <Widget>[
             TextButton(
               child: Text('OK'),
@@ -303,9 +326,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 
-  // Exibir o popup de tomada
   Future<void> _showTakenPopup(Remedio remedio) async {
-    bool? taken = await showDialog<bool>(
+    await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -318,7 +340,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
               ElevatedButton(
                 onPressed: () {
                   _scanBarcodeAndVerifyMedication(remedio);
-                  Navigator.of(context).pop();
                 },
                 child: Text('Escanear código de barras'),
               ),
@@ -328,7 +349,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
             TextButton(
               child: Text('Cancelar'),
               onPressed: () {
-                Navigator.of(context).pop(false);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Erro'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
               },
             ),
           ],
