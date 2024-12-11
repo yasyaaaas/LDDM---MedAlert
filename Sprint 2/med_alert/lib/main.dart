@@ -13,6 +13,7 @@ import 'features/TelasPrincipais/account_screen.dart';
 import 'features/TelasPrincipais/settings_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 Future<void> requestExactAlarmPermission() async {
   PermissionStatus status = await Permission.notification.request();
@@ -35,9 +36,15 @@ Future<void> requestCamreraPermission() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService().init();
-   await Firebase.initializeApp();
   await requestExactAlarmPermission();
   await requestCamreraPermission();
+
+  if (Firebase.apps.isEmpty) {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+    name: "MyCustomApp",
+  );
+}
 
   Future.delayed(Duration(seconds: 10), () {
     NotificationService().scheduleNotification(
