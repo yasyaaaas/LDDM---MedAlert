@@ -3,7 +3,6 @@
 ### Desenvolvedores:
 - Yasmin Cassemiro Viegas
 - Paulo Antônio Eufrázio Araujo
-- Júlio César Gonzaga Ferreira Silva
 
 # Proposta:
 O **MedAlert** é um aplicativo inovador voltado para auxiliar pessoas idosas no controle e administração de seus medicamentos. Suas funcionalidades são:
